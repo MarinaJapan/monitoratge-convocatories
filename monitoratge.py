@@ -139,7 +139,7 @@ def executar_monitoratge():
             print(f"{nom}: {nou_estat}")
 
             updates.append({
-                "range": f"E{index}:I{index}",
+                "range": f"E{index}:K{index}",
                 "values": [[
                     nou_estat,        # E estat
                     activa,           # F activa
@@ -167,7 +167,7 @@ Enllaç: {enllac_bases}
             print(f"❌ Error a {nom}: {e}")
 
             updates.append({
-                "range": f"E{index}:I{index}",
+                "range": f"E{index}:K{index}",
                 "values": [[
                     "ERROR",
                     activa,
