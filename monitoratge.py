@@ -149,7 +149,7 @@ Enllaç: {enllac_bases}
         print("✅ Google Sheet actualitzat en bloc")
 
     if noves_detectades == 0:
-        enviar_telegram ("✅ Monitoratge executat\nCap nova convocatòria detectada")
+        enviar_telegram("✅ Monitoratge executat\nCap nova convocatòria detectada")
     else:
         enviar_telegram(f"✅ Monitoratge executat\n{noves_detectades} noves convocatòries detectades")
 
