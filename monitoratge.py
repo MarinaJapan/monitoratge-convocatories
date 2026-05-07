@@ -78,6 +78,7 @@ def revisar_url(url, paraules_clau):
 def executar_monitoratge():
     registres = sheet.get_all_records()
     updates = []
+    noves_detectades = 0
 
     for index, fila in enumerate(registres, start=2):
 
@@ -118,6 +119,7 @@ def executar_monitoratge():
             })
 
             if publicada and estat_anterior != "PUBLICADA":
+                noves_detectades +=1
                 missatge = f"""📢 CONVOCATÒRIA DETECTADA
 
 Nom: {nom}
@@ -145,6 +147,11 @@ Enllaç: {enllac_bases}
     if updates:
         sheet.batch_update(updates)
         print("✅ Google Sheet actualitzat en bloc")
+
+    if noves_detectades == 0:
+        enviar_telegram ("✅ Monitoratge executat\nCap nova convocatòria detectada")
+    else:
+        enviar_telegram(f"✅ Monitoratge executat\n{noves_detectades} noves convocatòries detectades")
 
 # =========================
 # RUN
