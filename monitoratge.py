@@ -77,10 +77,10 @@ def revisar_url(url, paraules_clau):
 
 def executar_monitoratge():
     registres = sheet.get_all_records()
+    updates = []
 
     for index, fila in enumerate(registres, start=2):
 
-        # Saltar filas vacías
         if not any(fila.values()):
             continue
 
@@ -90,7 +90,6 @@ def executar_monitoratge():
         estat_anterior = fila.get("estat", "")
         activa = str(fila.get("activa", "")).strip().lower()
 
-        # Solo procesar activas
         if activa not in ["si", "sí", "yes", "y"]:
             print(f"⏭️ {nom}: desactivada")
             continue
@@ -99,31 +98,25 @@ def executar_monitoratge():
             print(f"⚠️ Fila {index}: dades incompletes")
             continue
 
+        avui = datetime.now().strftime("%Y-%m-%d %H:%M")
+
         try:
             publicada, enllac_bases, observacions = revisar_url(url, paraules_clau)
-
             nou_estat = "PUBLICADA" if publicada else "NO TROBADA"
-            avui = datetime.now().strftime("%Y-%m-%d %H:%M")
-
-            # Columnas:
-            # A nom
-            # B url
-            # C paraules_clau
-            # D mes_habitual
-            # E estat
-            # F activa
-            # G ultima_revisio
-            # H enllac_bases
-            # I observacions
-
-            sheet.update_cell(index, 5, nou_estat)
-            sheet.update_cell(index, 7, avui)
-            sheet.update_cell(index, 8, enllac_bases)
-            sheet.update_cell(index, 9, observacions)
 
             print(f"{nom}: {nou_estat}")
 
-            # Notificar solo si es nueva publicación
+            updates.append({
+                "range": f"E{index}:I{index}",
+                "values": [[
+                    nou_estat,        # E estat
+                    activa,           # F activa
+                    avui,             # G ultima_revisio
+                    enllac_bases,     # H enllac_bases
+                    observacions      # I observacions
+                ]]
+            })
+
             if publicada and estat_anterior != "PUBLICADA":
                 missatge = f"""📢 CONVOCATÒRIA DETECTADA
 
@@ -136,13 +129,22 @@ Enllaç: {enllac_bases}
                 print("📩 Missatge enviat a Telegram")
 
         except Exception as e:
-            avui = datetime.now().strftime("%Y-%m-%d %H:%M")
-
-            sheet.update_cell(index, 5, "ERROR")
-            sheet.update_cell(index, 7, avui)
-            sheet.update_cell(index, 9, str(e))
-
             print(f"❌ Error a {nom}: {e}")
+
+            updates.append({
+                "range": f"E{index}:I{index}",
+                "values": [[
+                    "ERROR",
+                    activa,
+                    avui,
+                    "",
+                    str(e)
+                ]]
+            })
+
+    if updates:
+        sheet.batch_update(updates)
+        print("✅ Google Sheet actualitzat en bloc")
 
 # =========================
 # RUN
