@@ -5,6 +5,7 @@ import gspread
 from bs4 import BeautifulSoup
 from datetime import datetime
 from google.oauth2.service_account import Credentials
+from urllib.parse import urljoin
 
 # =========================
 # CONFIGURACIÓN
@@ -53,7 +54,7 @@ def enviar_telegram(missatge):
 # SCRAPING
 # =========================
 
-def revisar_url(url, paraules_clau, paraules_excloses):
+def revisar_url(url, paraules_clau, paraules_excloses, pdfs_anteriors):
     headers = {"User-Agent": "Mozilla/5.0"}
 
     response = requests.get(url, headers=headers, timeout=30)
@@ -72,13 +73,32 @@ def revisar_url(url, paraules_clau, paraules_excloses):
     trobades = [p for p in claus if p in text]
     bloquejades = [p for p in excloses if p in text]
 
+    pdfs_actuals = obtenir_pdfs(soup, url)
+    pdfs_antics = [p.strip() for p in str(pdfs_anteriors).split("\n") if p.strip()]
+    pdfs_nous = [p for p in pdfs_actuals if p not in pdfs_antics]
+
     if bloquejades:
-        return False, "", f"Descartada per paraules excloses: {', '.join(bloquejades)}"
+        return False, "", f"Descartada per paraules excloses: {', '.join(bloquejades)}", pdfs_actuals, pdfs_nous
+
+    if pdfs_nous:
+        return True, pdfs_nous[0], f"PDFs nous detectats: {len(pdfs_nous)}", pdfs_actuals, pdfs_nous
 
     if len(trobades) >= 2:
-        return True, url, f"Paraules trobades: {', '.join(trobades)}"
+        return True, url, f"Paraules trobades: {', '.join(trobades)}", pdfs_actuals, pdfs_nous
 
-    return False, "", f"Coincidències insuficients: {', '.join(trobades) if trobades else 'cap'}"
+    return False, "", f"Coincidències insuficients: {', '.join(trobades) if trobades else 'cap'}", pdfs_actuals, pdfs_nous
+
+def obtenir_pdfs(soup, base_url):
+    pdfs = []
+
+    for link in soup.find_all("a", href=True):
+        href = link["href"].strip()
+
+        if ".pdf" in href.lower():
+            pdf_url = urljoin(base_url, href)
+            pdfs.append(pdf_url)
+
+    return sorted(set(pdfs))
 
 # =========================
 # MAIN
@@ -100,6 +120,7 @@ def executar_monitoratge():
         paraules_excloses= fila.get("paraules_excloses","")
         estat_anterior = fila.get("estat", "")
         activa = str(fila.get("activa", "")).strip().lower()
+        pdfs_anteriors = fila.get("pdfs_detectats","")
 
         if activa not in ["si", "sí", "yes", "y"]:
             print(f"⏭️ {nom}: desactivada")
@@ -112,7 +133,7 @@ def executar_monitoratge():
         avui = datetime.now().strftime("%Y-%m-%d %H:%M")
 
         try:
-            publicada, enllac_bases, observacions = revisar_url(url, paraules_clau, paraules_excloses)
+            publicada, enllac_bases, observacions, pdfs_actuals, pdfs_nous = revisar_url(url, paraules_clau, paraules_excloses,pdfs_anteriors)
             nou_estat = "PUBLICADA" if publicada else "NO TROBADA"
 
             print(f"{nom}: {nou_estat}")
@@ -124,7 +145,9 @@ def executar_monitoratge():
                     activa,           # F activa
                     avui,             # G ultima_revisio
                     enllac_bases,     # H enllac_bases
-                    observacions      # I observacions
+                    observacions,     # I observacions
+                    paraules_excloses, # J paraules_excloses
+                    "\n".join(pdfs_actuals) # pdfs_detectats
                 ]]
             })
 
@@ -150,7 +173,9 @@ Enllaç: {enllac_bases}
                     activa,
                     avui,
                     "",
-                    str(e)
+                    str(e),
+                    paraules_excloses,
+                    pdfs_anteriors
                 ]]
             })
 
