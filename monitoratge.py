@@ -65,6 +65,10 @@ def revisar_url(url, paraules_clau, paraules_excloses):
     claus = [p.strip().lower() for p in str(paraules_clau).split(",") if p.strip()]
     excloses = [p.strip().lower() for p in str(paraules_excloses).split(",") if p.strip()]
 
+    any_actual = str(datetime.now().year)
+    if any_actual not in claus:
+        claus.append(any_actual)
+
     trobades = [p for p in claus if p in text]
     bloquejades = [p for p in excloses if p in text]
 
