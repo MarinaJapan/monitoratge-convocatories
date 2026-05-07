@@ -53,7 +53,7 @@ def enviar_telegram(missatge):
 # SCRAPING
 # =========================
 
-def revisar_url(url, paraules_clau):
+def revisar_url(url, paraules_clau, paraules_excloses):
     headers = {"User-Agent": "Mozilla/5.0"}
 
     response = requests.get(url, headers=headers, timeout=30)
@@ -62,10 +62,15 @@ def revisar_url(url, paraules_clau):
     soup = BeautifulSoup(response.text, "html.parser")
     text = soup.get_text(" ", strip=True).lower()
 
-    paraules = [p.strip().lower() for p in str(paraules_clau).split(",") if p.strip()]
-    trobades = [p for p in paraules if p in text]
+    claus = [p.strip().lower() for p in str(paraules_clau).split(",") if p.strip()]
+    excloses = [p.strip().lower() for p in str(paraules_excloses).split(",") if p.strip()]
 
-    # 🔥 mínimo 2 coincidencias
+    trobades = [p for p in claus if p in text]
+    bloquejades = [p for p in excloses if p in text]
+
+    if bloquejades:
+        return False, "", f"Descartada per paraules excloses: {', '.join(bloquejades)}"
+
     if len(trobades) >= 2:
         return True, url, f"Paraules trobades: {', '.join(trobades)}"
 
@@ -88,6 +93,7 @@ def executar_monitoratge():
         nom = fila.get("nom", "")
         url = fila.get("url", "")
         paraules_clau = fila.get("paraules_clau", "")
+        paraules_excloses= fila.get("paraules_excloses","")
         estat_anterior = fila.get("estat", "")
         activa = str(fila.get("activa", "")).strip().lower()
 
@@ -102,7 +108,7 @@ def executar_monitoratge():
         avui = datetime.now().strftime("%Y-%m-%d %H:%M")
 
         try:
-            publicada, enllac_bases, observacions = revisar_url(url, paraules_clau)
+            publicada, enllac_bases, observacions = revisar_url(url, paraules_clau, paraules_excloses)
             nou_estat = "PUBLICADA" if publicada else "NO TROBADA"
 
             print(f"{nom}: {nou_estat}")
