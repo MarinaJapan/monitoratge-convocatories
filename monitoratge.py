@@ -54,6 +54,17 @@ def enviar_telegram(missatge):
 # SCRAPING
 # =========================
 
+def obtenir_pdfs(soup, base_url):
+    pdfs = []
+
+    for link in soup.find_all("a", href=True):
+        href = link["href"].strip()
+
+        if ".pdf" in href.lower():
+            pdf_url = urljoin(base_url, href)
+            pdfs.append(pdf_url)
+
+    return sorted(set(pdfs))
 def revisar_url(url, paraules_clau, paraules_excloses, pdfs_anteriors):
     headers = {"User-Agent": "Mozilla/5.0"}
 
