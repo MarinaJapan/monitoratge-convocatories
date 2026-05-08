@@ -57,8 +57,15 @@ def enviar_telegram(missatge):
 def revisar_url(url, paraules_clau, paraules_excloses, pdfs_anteriors):
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    response = requests.get(url, headers=headers, timeout=30)
+    response = requests.get(
+        url,
+        headers=headers,
+        timeout=30,
+        allow_redirects=True
+    )
     response.raise_for_status()
+
+    url_final = response.url
 
     soup = BeautifulSoup(response.text, "html.parser")
     text = soup.get_text(" ", strip=True).lower()
@@ -79,6 +86,9 @@ def revisar_url(url, paraules_clau, paraules_excloses, pdfs_anteriors):
 
     observacions_parts = []
 
+    if url_final.rstrip("/") != url.rstrip("/"):
+        observacions_parts.append(f"Redirect detectat: {url_final}")
+
     if trobades:
         observacions_parts.append(f"Paraules trobades: {', '.join(trobades)}")
     else:
@@ -94,28 +104,11 @@ def revisar_url(url, paraules_clau, paraules_excloses, pdfs_anteriors):
     publicada = len(trobades) >= 2 or len(pdfs_nous) > 0
 
     if publicada:
-        if pdfs_nous:
-            enllac_bases = pdfs_nous[0]
-        else:
-            enllac_bases = url
-
+        enllac_bases = pdfs_nous[0] if pdfs_nous else url
         return True, enllac_bases, " | ".join(observacions_parts), pdfs_actuals, pdfs_nous
 
     observacions_parts.append("No compleix criteris de detecció")
     return False, "", " | ".join(observacions_parts), pdfs_actuals, pdfs_nous
-    
-def obtenir_pdfs(soup, base_url):
-    pdfs = []
-
-    for link in soup.find_all("a", href=True):
-        href = link["href"].strip()
-
-        if ".pdf" in href.lower():
-            pdf_url = urljoin(base_url, href)
-            pdfs.append(pdf_url)
-
-    return sorted(set(pdfs))
-
 # =========================
 # MAIN
 # =========================
