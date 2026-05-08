@@ -77,17 +77,33 @@ def revisar_url(url, paraules_clau, paraules_excloses, pdfs_anteriors):
     pdfs_antics = [p.strip() for p in str(pdfs_anteriors).split("\n") if p.strip()]
     pdfs_nous = [p for p in pdfs_actuals if p not in pdfs_antics]
 
-    if bloquejades:
-        return False, "", f"Descartada per paraules excloses: {', '.join(bloquejades)}", pdfs_actuals, pdfs_nous
+    observacions_parts = []
+
+    if trobades:
+        observacions_parts.append(f"Paraules trobades: {', '.join(trobades)}")
+    else:
+        observacions_parts.append("Paraules trobades: cap")
 
     if pdfs_nous:
-        return True, pdfs_nous[0], f"PDFs nous detectats: {len(pdfs_nous)}", pdfs_actuals, pdfs_nous
+        observacions_parts.append(f"PDFs nous detectats: {len(pdfs_nous)}")
 
-    if len(trobades) >= 2:
-        return True, url, f"Paraules trobades: {', '.join(trobades)}", pdfs_actuals, pdfs_nous
+    if bloquejades:
+        observacions_parts.append(f"Paraules excloses trobades: {', '.join(bloquejades)}")
+        return False, "", " | ".join(observacions_parts), pdfs_actuals, pdfs_nous
 
-    return False, "", f"Coincidències insuficients: {', '.join(trobades) if trobades else 'cap'}", pdfs_actuals, pdfs_nous
+    publicada = len(trobades) >= 2 or len(pdfs_nous) > 0
 
+    if publicada:
+        if pdfs_nous:
+            enllac_bases = pdfs_nous[0]
+        else:
+            enllac_bases = url
+
+        return True, enllac_bases, " | ".join(observacions_parts), pdfs_actuals, pdfs_nous
+
+    observacions_parts.append("No compleix criteris de detecció")
+    return False, "", " | ".join(observacions_parts), pdfs_actuals, pdfs_nous
+    
 def obtenir_pdfs(soup, base_url):
     pdfs = []
 
