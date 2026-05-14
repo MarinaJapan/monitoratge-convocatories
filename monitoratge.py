@@ -77,7 +77,9 @@ def revisar_url(url, paraules_clau, paraules_excloses, pdfs_anteriors):
     response.raise_for_status()
 
     url_final = response.url
-
+    if url_final.rstrip("/") != url.rstrip("/"):
+        raise Exception(f"La URL redirigeix a una altra pàgina: {url_final}")
+        
     soup = BeautifulSoup(response.text, "html.parser")
     text = soup.get_text(" ", strip=True).lower()
 
