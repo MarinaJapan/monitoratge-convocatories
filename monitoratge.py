@@ -91,7 +91,7 @@ def revisar_url(url, paraules_clau, paraules_excloses, pdfs_anteriors):
     trobades = [p for p in claus if p in text]
     bloquejades = [p for p in excloses if p in text]
 
-    pdfs_actuals = obtenir_pdfs(soup, url)
+    pdfs_actuals = obtenir_pdfs(soup, url_final)
     pdfs_antics = [p.strip() for p in str(pdfs_anteriors).split("\n") if p.strip()]
     pdfs_nous = [p for p in pdfs_actuals if p not in pdfs_antics]
 
@@ -115,7 +115,7 @@ def revisar_url(url, paraules_clau, paraules_excloses, pdfs_anteriors):
     publicada = len(trobades) >= 2 or len(pdfs_nous) > 0
 
     if publicada:
-        enllac_bases = pdfs_nous[0] if pdfs_nous else url
+        enllac_bases = pdfs_nous[0] if pdfs_nous else url_final
         return True, enllac_bases, " | ".join(observacions_parts), pdfs_actuals, pdfs_nous
 
     observacions_parts.append("No compleix criteris de detecció")
