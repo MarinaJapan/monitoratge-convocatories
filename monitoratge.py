@@ -141,6 +141,16 @@ def executar_monitoratge():
         estat_anterior = fila.get("estat", "")
         activa = str(fila.get("activa", "")).strip().lower()
         pdfs_anteriors = fila.get("pdfs_detectats","")
+        area_oncologica = fila.get("area_oncologica", "")
+        subespecialitzacio = fila.get("subespecialitzacio", "")
+        tema = fila.get("tema", "")
+        tipus_convocatoria = fila.get("tipus_convocatoria", "")
+        ambit = fila.get("ambit", "")
+        perfil_elegible = fila.get("perfil_elegible", "")
+        multicentric = fila.get("multicentric", "")
+        financament = fila.get("financament", "")
+        durada_anys = fila.get("durada_anys", "")
+        notes_estrategiques = fila.get("notes_estrategiques", ""
 
         if activa not in ["si", "sí", "yes", "y"]:
             print(f"⏭️ {nom}: desactivada")
@@ -176,9 +186,23 @@ def executar_monitoratge():
                 missatge = f"""📢 CONVOCATÒRIA DETECTADA
 
 Nom: {nom}
+Àrea oncològica: {area_oncologica}
+Subespecialització: {subespecialitzacio}
+Tema: {tema}
+Tipus convocatòria: {tipus_convocatoria}
+Àmbit: {ambit}
+Perfil elegible: {perfil_elegible}
+Multicèntric: {multicentric}
+Finançament: {financament}
+Durada: {durada_anys} anys
+
 Enllaç: {enllac_bases}
 
+Detecció:
 {observacions}
+
+Notes:
+{notes_estrategiques}
 """
                 enviar_telegram(missatge)
                 print("📩 Missatge enviat a Telegram")
