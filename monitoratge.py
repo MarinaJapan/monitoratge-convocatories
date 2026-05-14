@@ -99,6 +99,9 @@ def revisar_url(url, paraules_clau, paraules_excloses, pdfs_anteriors):
 
     observacions_parts = []
 
+    observacions_parts.append(f"URL original: {url}")
+    observacions_parts.append(f"URL analitzada: {url_final}")    
+
     if url_final.rstrip("/") != url.rstrip("/"):
         observacions_parts.append(f"Redirect detectat: {url_final}")
 
