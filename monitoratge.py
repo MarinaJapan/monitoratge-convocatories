@@ -150,7 +150,7 @@ def executar_monitoratge():
         multicentric = fila.get("multicentric", "")
         financament = fila.get("financament", "")
         durada_anys = fila.get("durada_anys", "")
-        notes_estrategiques = fila.get("notes_estrategiques", ""
+        notes_estrategiques = fila.get("notes_estrategiques", "")
 
         if activa not in ["si", "sí", "yes", "y"]:
             print(f"⏭️ {nom}: desactivada")
